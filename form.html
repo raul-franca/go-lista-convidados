@@ -1,11 +1,11 @@
 {{ define "body"}}
 <div class="h5 bg-primary text-white text-center m-2 p-2">RSVP</div>
 {{ if gt (len .Errors) 0}}
-<ul class="text-danger mt-3">
-  {{ range .Errors }}
-  <li>{{ .  }}</li>
-  {{ end }}
-</ul>
+  <ul class="text-danger mt-3">
+    {{ range .Errors }}
+      <li>{{ .  }}</li>
+    {{ end }}
+  </ul>
 {{ end }}
 <form method="POST" class="m-2">
   <div class="form-group my-1">

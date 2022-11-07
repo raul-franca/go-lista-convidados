@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"html/template"
+	"net/http"
 )
 
 type Rsvp struct { // RSVP responda por favor
@@ -31,5 +32,53 @@ func loadTemplates() {
 
 func main() {
 	loadTemplates()
+	http.HandleFunc("/", welcomeHandler)
+	http.HandleFunc("/list", listHandler)
+	http.HandleFunc("/form", formHandler)
 
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		panic(err)
+	}
+
+}
+
+func welcomeHandler(writer http.ResponseWriter, request *http.Request) {
+	templates["welcome"].Execute(writer, nil)
+}
+func listHandler(writer http.ResponseWriter, request *http.Request) {
+	templates["list"].Execute(writer, responses)
+}
+func formHandler(writer http.ResponseWriter, request *http.Request) {
+	if request.Method == http.MethodGet {
+		err := templates["form"].Execute(writer, formData{
+			Rsvp:   &Rsvp{},
+			Errors: []string{},
+		})
+		if err != nil {
+			panic(err)
+		}
+	} else if request.Method == http.MethodPost {
+		request.ParseForm()
+		responseData := Rsvp{
+			Name:       request.Form["name"][0],
+			Email:      request.Form["email"][0],
+			Phone:      request.Form["phone"][0],
+			WillAttend: request.Form["willattend"][0] == "true",
+		}
+
+		responses = append(responses, &responseData)
+
+		if responseData.WillAttend {
+			templates["thanks"].Execute(writer, responseData.Name)
+		} else {
+			templates["sorry"].Execute(writer, responseData.Name)
+		}
+
+	}
+}
+
+type formData struct {
+	*Rsvp
+	Errors []string
 }
