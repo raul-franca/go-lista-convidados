@@ -49,7 +49,11 @@ func welcomeHandler(writer http.ResponseWriter, request *http.Request) {
 func listHandler(writer http.ResponseWriter, request *http.Request) {
 	templates["list"].Execute(writer, responses)
 }
+
 func formHandler(writer http.ResponseWriter, request *http.Request) {
+
+	// se request = method GET responde com o form vazio
+	// que esta neste caso está vindo de welcome.html
 	if request.Method == http.MethodGet {
 		err := templates["form"].Execute(writer, formData{
 			Rsvp:   &Rsvp{},
@@ -58,6 +62,7 @@ func formHandler(writer http.ResponseWriter, request *http.Request) {
 		if err != nil {
 			panic(err)
 		}
+		// se request = method POST popula a struct Rsvp com os dados vindos do form
 	} else if request.Method == http.MethodPost {
 		request.ParseForm()
 		responseData := Rsvp{
@@ -67,14 +72,32 @@ func formHandler(writer http.ResponseWriter, request *http.Request) {
 			WillAttend: request.Form["willattend"][0] == "true",
 		}
 
-		responses = append(responses, &responseData)
-
-		if responseData.WillAttend {
-			templates["thanks"].Execute(writer, responseData.Name)
-		} else {
-			templates["sorry"].Execute(writer, responseData.Name)
+		// valida os campos caso algum nao tenha sido preenchido retorna com o erro para form.hml
+		var errors []string
+		if responseData.Name == "" {
+			errors = append(errors, "Please enter your name")
 		}
+		if responseData.Email == "" {
+			errors = append(errors, "Please enter your email address")
+		}
+		if responseData.Phone == "" {
+			errors = append(errors, "Please enter your phone number")
+		}
+		if len(errors) > 0 {
+			templates["form"].Execute(writer, formData{
+				Rsvp:   &responseData,
+				Errors: errors,
+			})
+		} else {
 
+			responses = append(responses, &responseData)
+
+			if responseData.WillAttend {
+				templates["thanks"].Execute(writer, responseData.Name)
+			} else {
+				templates["sorry"].Execute(writer, responseData.Name)
+			}
+		}
 	}
 }
 
