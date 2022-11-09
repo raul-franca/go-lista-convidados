@@ -11,6 +11,11 @@ type Rsvp struct { // RSVP responda por favor
 	WillAttend         bool
 }
 
+type formData struct {
+	*Rsvp
+	Errors []string
+}
+
 // Vai funcionar como um banco de dados com as respostas
 var responses = make([]*Rsvp, 0, 10)                   // []slice, make(type, len inicial, capacidade)
 var templates = make(map[string]*template.Template, 3) //map[key]valor, tamanho
@@ -28,19 +33,6 @@ func loadTemplates() {
 			panic(err)
 		}
 	}
-}
-
-func main() {
-	loadTemplates()
-	http.HandleFunc("/", welcomeHandler)
-	http.HandleFunc("/list", listHandler)
-	http.HandleFunc("/form", formHandler)
-
-	err := http.ListenAndServe(":8080", nil)
-	if err != nil {
-		panic(err)
-	}
-
 }
 
 func welcomeHandler(writer http.ResponseWriter, request *http.Request) {
@@ -101,7 +93,15 @@ func formHandler(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-type formData struct {
-	*Rsvp
-	Errors []string
+func main() {
+	loadTemplates()
+	http.HandleFunc("/", welcomeHandler)
+	http.HandleFunc("/list", listHandler)
+	http.HandleFunc("/form", formHandler)
+
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		panic(err)
+	}
+
 }
